@@ -1,0 +1,57 @@
+{
+	"name": "template-string-formatter-plus",
+	"displayName": "Template String Formatter Plus",
+	"description": "Customizable Template String converter for Javascript & Typescript",
+	"publisher": "DarkPhoenix",
+	"version": "0.0.1",
+	"engines": {
+		"vscode": "^1.94.0"
+	},
+	"icon": "images/logo.png",
+	"categories": ["Other"],
+	"activationEvents": [
+		"onLanguage:javascript",
+		"onLanguage:typescript",
+		"onLanguage:javascriptreact",
+		"onLanguage:typescriptreact"
+	],
+	"main": "./extension.js",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/0DarkPhoenix/template-string-formatter-plus.git"
+	},
+	"contributes": {
+		"commands": [],
+		"configuration": [
+			{
+				"title": "Template String Formatter Plus",
+				"properties": {
+					"template-string-formatter-plus.ignorePatterns": {
+						"type": "array",
+						"default": [],
+						"description": "Define file patterns to ignore when converting template strings"
+					},
+					"template-string-formatter-plus.convertOnCurlyBraces": {
+						"type": "boolean",
+						"default": true,
+						"description": "Convert to template string when typing {} inside a string ($ will be automatically prefixed before {)"
+					}
+				}
+			}
+		]
+	},
+	"scripts": {
+		"lint": "eslint .",
+		"pretest": "npm run lint",
+		"test": "vscode-test"
+	},
+	"devDependencies": {
+		"@types/vscode": "^1.94.0",
+		"@types/mocha": "^10.0.6",
+		"@types/node": "18.x",
+		"eslint": "^8.57.0",
+		"typescript": "^5.4.5",
+		"@vscode/test-cli": "^0.0.9",
+		"@vscode/test-electron": "^2.4.0"
+	}
+}
