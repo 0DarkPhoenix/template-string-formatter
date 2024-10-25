@@ -39,15 +39,17 @@ function activate(context) {
 
 		const position = activeEditor.selection.active;
 		const lineText = document.lineAt(position.line).text;
-		const stringRegex = /(`|"|')((?:\\\1|.)*?)\1/g;
+		const stringRegex = /(`|"|')((?:[^\\]|\\.)*?)\1/g;
 		let match;
 
 		while ((match = stringRegex.exec(lineText)) !== null) {
-			const [stringContent, quoteType] = match;
+			const fullMatch = match[0];
+			const quoteType = match[1];
 			const start = match.index;
-			const end = stringRegex.lastIndex;
+			const end = match.index + fullMatch.length;
 
 			if (position.character >= start && position.character <= end) {
+				const stringContent = fullMatch.slice(1, -1);
 				const hasPlaceholders = /\$\{.*?\}/.test(stringContent);
 				const hasCurlyBraces = /\{[^}]*\}/.test(stringContent);
 				const hasUnprefixedCurlyBraces = /[^$]\{[^}]*\}/.test(stringContent);
@@ -61,8 +63,8 @@ function activate(context) {
 				if (shouldConvertToTemplate || shouldConvertFromTemplate) {
 					activeEditor.edit(
 						(editBuilder) => {
-							let newContent = stringContent.slice(1, -1);
-							const newQuotes = shouldConvertToTemplate ? "`" : '"';
+							let newContent = stringContent;
+							const newQuotes = shouldConvertToTemplate ? "`" : "'";
 							let cursorOffset = 0;
 
 							if (shouldConvertToTemplate && convertOnCurlyBraces) {
@@ -97,7 +99,6 @@ function activate(context) {
 					);
 				}
 			}
-			break;
 		}
 	}
 
