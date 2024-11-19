@@ -1,3 +1,7 @@
+## [0.1.0] - 2024-11-19
+### Fixed
+- Fixed an issue where an ignore pattern for a folder wouldn't work
+- 
 ## [0.0.3] - 2024-11-19
 ### Fixed
 - Fixed an issue where an ignore pattern for a file wouldn't work
