@@ -13,7 +13,7 @@ function activate(context) {
 		return ignorePatterns.some((pattern) => {
 			// Convert glob-style pattern to RegExp
 			const regexPattern = pattern
-				.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") // Escape special RegExp chars
+				.replace(/[.*+?^${}()|[\]\\]/g, "\\{text}") // Escape special RegExp chars
 				.replace(/\\\*/g, ".*") // Convert * back to .* for wildcards
 				.replace(/\\\//g, "\\/"); // Handle path separators
 
@@ -57,15 +57,33 @@ function activate(context) {
 
 			if (position.character >= start && position.character <= end) {
 				const stringContent = fullMatch.slice(1, -1);
+
+				// Skip empty strings or strings with only whitespace
+				if (quoteType === "`" && stringContent.trim() === "") {
+					continue;
+				}
+
 				const hasPlaceholders = /\$\{.*?\}/.test(stringContent);
 				const hasCurlyBraces = /\{[^}]*\}/.test(stringContent);
 				const hasUnprefixedCurlyBraces = /[^$]\{[^}]*\}/.test(stringContent);
+
+				// Check if the backtick is preceded by a function name (tagged template literal)
+				const isTaggedTemplateLiteral =
+					quoteType === "`" &&
+					start > 0 &&
+					/[a-zA-Z0-9_$]\s*$/.test(lineText.substring(0, start));
+
+				// Check if the string contains line breaks
+				const hasLineBreaks = stringContent.includes("\n");
 
 				const shouldConvertToTemplate =
 					(hasPlaceholders || (convertOnCurlyBraces && hasCurlyBraces)) &&
 					quoteType !== "`";
 				const shouldConvertFromTemplate =
-					quoteType === "`" && (hasUnprefixedCurlyBraces || !hasPlaceholders);
+					quoteType === "`" &&
+					(hasUnprefixedCurlyBraces || !hasPlaceholders) &&
+					!isTaggedTemplateLiteral &&
+					!hasLineBreaks;
 
 				if (shouldConvertToTemplate || shouldConvertFromTemplate) {
 					activeEditor.edit(
