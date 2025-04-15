@@ -1,3 +1,7 @@
+## [0.2.2] - 2025-04-15
+### Added
+- Added additional logic to prevent the conversion from happening inside any kind of comment, JSDoc or TSDoc
+
 ## [0.2.1] - 2025-04-08
 ### Changed
 - Decreased the file size of logo.png (24kb to 16kb)

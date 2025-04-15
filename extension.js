@@ -46,6 +46,13 @@ function activate(context) {
 
 		const position = activeEditor.selection.active;
 		const lineText = document.lineAt(position.line).text;
+
+		// Check if current position is within a comment
+		const isInComment = isPositionInComment(document, position);
+		if (isInComment) {
+			return;
+		}
+
 		const stringRegex = /(`|"|')((?:[^\\]|\\.)*?)\1/g;
 		let match;
 
@@ -127,6 +134,63 @@ function activate(context) {
 		}
 	}
 
+	function isPositionInComment(document, position) {
+		const lineText = document.lineAt(position.line).text;
+		const lineUntilPosition = lineText.substring(0, position.character);
+
+		// Check if in a single-line comment
+		const singleLineCommentIndex = lineUntilPosition.lastIndexOf("//");
+		if (singleLineCommentIndex >= 0 && !isInsideString(lineText, singleLineCommentIndex)) {
+			return true;
+		}
+
+		// For multi-line comments and JSDoc, we need to check surrounding lines
+		const startLine = Math.max(0, position.line - 100); // Look back up to 100 lines
+		let text = "";
+
+		for (let i = startLine; i <= position.line; i++) {
+			text += `${document.lineAt(i).text}\n`;
+		}
+
+		// Build a string up to the current position
+		const targetOffset = text.length - (lineText.length - position.character) - 1;
+		const textUntilPosition = text.substring(0, targetOffset);
+
+		// Count /* and */ to determine if we're in a multi-line comment
+		const lastCommentStart = textUntilPosition.lastIndexOf("/*");
+		const lastCommentEnd = textUntilPosition.lastIndexOf("*/");
+
+		// If there's a /* without a matching */ before our position, we're in a comment
+		if (lastCommentStart >= 0 && (lastCommentEnd < 0 || lastCommentEnd < lastCommentStart)) {
+			// Make sure the /* is not inside a string
+			if (!isInsideString(text, lastCommentStart)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	// Helper function to check if a position is inside a string
+	function isInsideString(lineText, index) {
+		let inSingleQuote = false;
+		let inDoubleQuote = false;
+		let inBacktick = false;
+		let i = 0;
+
+		while (i < index) {
+			if (lineText[i] === "'" && (i === 0 || lineText[i - 1] !== "\\")) {
+				inSingleQuote = !inSingleQuote;
+			} else if (lineText[i] === '"' && (i === 0 || lineText[i - 1] !== "\\")) {
+				inDoubleQuote = !inDoubleQuote;
+			} else if (lineText[i] === "`" && (i === 0 || lineText[i - 1] !== "\\")) {
+				inBacktick = !inBacktick;
+			}
+			i++;
+		}
+
+		return inSingleQuote || inDoubleQuote || inBacktick;
+	}
 	function triggerUpdateTemplateString() {
 		if (timeout) {
 			clearTimeout(timeout);
