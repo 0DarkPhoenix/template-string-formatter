@@ -13,11 +13,10 @@ function activate(context) {
 		return ignorePatterns.some((pattern) => {
 			// Convert glob-style pattern to RegExp
 			const regexPattern = pattern
-				.replace(/[.*+?^${}()|[\]\\]/g, "\\{text}") // Escape special RegExp chars
-				.replace(/\\\*/g, ".*") // Convert * back to .* for wildcards
-				.replace(/\\\//g, "\\/"); // Handle path separators
+				.replace(/[.+?^${}()|[\]\\]/g, "\\$&") // Escape special RegExp chars except *
+				.replace(/\*/g, ".*"); // Convert * to .* for wildcards
 
-			return new RegExp(regexPattern).test(normalizedPath);
+			return new RegExp(`^${regexPattern}$`).test(normalizedPath);
 		});
 	}
 
@@ -38,8 +37,8 @@ function activate(context) {
 			return;
 		}
 
+		// Return early when the file path matches one of the ignore patterns
 		const filePath = document.fileName;
-
 		if (shouldIgnoreFile(filePath)) {
 			return;
 		}

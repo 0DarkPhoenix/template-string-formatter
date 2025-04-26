@@ -1,3 +1,7 @@
+## [0.2.3] - 2025-04-26
+### Fixed
+- Fixed an issue where the ignore patterns didn't work
+
 ## [0.2.2] - 2025-04-15
 ### Added
 - Added additional logic to prevent the conversion from happening inside any kind of comment, JSDoc or TSDoc
