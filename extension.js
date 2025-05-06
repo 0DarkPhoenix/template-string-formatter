@@ -143,31 +143,46 @@ function activate(context) {
 			return true;
 		}
 
-		// For multi-line comments and JSDoc, we need to check surrounding lines
-		const startLine = Math.max(0, position.line - 100); // Look back up to 100 lines
-		let text = "";
+		// For multi-line comments, we'll scan from the beginning of the file or a reasonable limit
+		const startLine = Math.max(0, position.line - 100);
+		let inComment = false;
 
+		// First scan backwards to find open/close comment markers
 		for (let i = startLine; i <= position.line; i++) {
-			text += `${document.lineAt(i).text}\n`;
-		}
+			const currentLine = document.lineAt(i).text;
 
-		// Build a string up to the current position
-		const targetOffset = text.length - (lineText.length - position.character) - 1;
-		const textUntilPosition = text.substring(0, targetOffset);
+			// For the current line, only scan up to the current position
+			const textToScan = i === position.line ? lineUntilPosition : currentLine;
 
-		// Count /* and */ to determine if we're in a multi-line comment
-		const lastCommentStart = textUntilPosition.lastIndexOf("/*");
-		const lastCommentEnd = textUntilPosition.lastIndexOf("*/");
+			let j = 0;
+			while (j < textToScan.length - 1) {
+				// Check for comment opening
+				if (
+					!inComment &&
+					textToScan.substring(j, j + 2) === "/*" &&
+					!isInsideString(textToScan.substring(0, j + 2), j)
+				) {
+					inComment = true;
+					j += 2;
+					continue;
+				}
 
-		// If there's a /* without a matching */ before our position, we're in a comment
-		if (lastCommentStart >= 0 && (lastCommentEnd < 0 || lastCommentEnd < lastCommentStart)) {
-			// Make sure the /* is not inside a string
-			if (!isInsideString(text, lastCommentStart)) {
-				return true;
+				// Check for comment closing
+				if (
+					inComment &&
+					textToScan.substring(j, j + 2) === "*/" &&
+					!isInsideString(textToScan.substring(0, j + 2), j)
+				) {
+					inComment = false;
+					j += 2;
+					continue;
+				}
+
+				j++;
 			}
 		}
 
-		return false;
+		return inComment;
 	}
 
 	// Helper function to check if a position is inside a string

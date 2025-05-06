@@ -1,3 +1,7 @@
+## [0.2.4] - 2025-05-06
+### Fixed
+- Fixed an issue where in some situations backticks were incorrectly converted to normal quotes inside JSdoc and TSdoc comments
+
 ## [0.2.3] - 2025-04-26
 ### Fixed
 - Fixed an issue where the ignore patterns didn't work
